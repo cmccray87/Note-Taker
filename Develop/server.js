@@ -50,138 +50,36 @@ app.get("/api/notes", (req, res) => {
     });
     
     console.log("Your Notes!");
-})
-
-// Get * - needs to return index.html (?)
-app.get("/", (request, response) => {
-    // response.sendFile(path.join(__dirname, "..", "..", "index.html"));
-    response.sendFile(path.join(__dirname, "public", "index.html"));
-    console.log("Your index!");
-})
-
-// GET /api/notes
-// Should read the db.json file and return all saved notes as JSON.db
-
-// Working, console logs object 
-// In class example response.json(response);
-app.get("/api/notes", (request, response) => {
-
-    fs.readFile(path.join(__dirname, "db", "db.json"), 'utf8', (err, jsonString) => {
-        if (err) {
-            console.log("File read failed:", err)
-            return
-        }
-        console.log('File data:', jsonString)
-        response.json(JSON.parse(jsonString));
-        // json.parse
-    })
-})
-
-
-// POST /api/notes -  Should recieve a new note to save on the request body, add it to the db.json file, and then return the new note to the client.
-
-// Test 
-
-// var noteText = require("../data/waitinglistData");
-// NOt yet working
-app.post("/api/notes", function (request, response) {
-
-    fs.readFile(path.join(__dirname, "db", "db.json"), 'utf8', (err, jsonString) => {
-        if (err) {
-            console.log("File read failed:", err)
-            return
-        }
-        console.log('File data:', jsonString);
-        // json.parse
-        var notes = JSON.parse(jsonString);
-
-        // Note object 
-        const newNote = {
-            title: request.body.title,
-            text: request.body.text,
-            // Github code 
-            id: Math.random().toString(36).substr(2, 9)
-        };
-
-        // console.log(newNote);
-        // array
-        // let noteText = [];
-        notes.push(newNote);
-        // Will not push to newNote
-        let NotesJSON = JSON.stringify(notes);
-        // push to array 
-        // then stringify 
-
-        fs.writeFile(path.join(__dirname, "db", "db.json"), NotesJSON, (err) => {
-            if (err) {
-                return console.log(err);
-            }
-            // this is console logging
-            console.log("Success!", NotesJSON);
-            return NotesJSON;
-        });
-
-    })
-
+    return res.json(savedNotes);
 });
 
 
-// DELETE /api/notes/:id 
-//  Should recieve a query paramter containing the id of a note to delete. This means you'll need to find a way to give each note a unique id when it's saved. In order to delete a note, you'll need to read all notes from the db.json file, remove the note with the given id property, and then rewrite the notes to the db.json file.
+// receives paramater containgin ID for deletion
+app.delete("/api/notes/:id", (req, res) => {
+    let savedNotes = JSON.parse(fs.readFileSync("./db/db.json", "utf8"));
+    let noteID = savedNotes.filter(x=>x.id!=req.params.id)
+    console.log("note id", noteID)
+    console.log("req.params.id", req.params.id)
 
-// Internal Server Error
-app.delete('/api/notes/:id', function (request, response) {
-
-    // console.log(request);
-    // if (err) {
-    //     console.log("Delete failed:", err)
-    // }
-
-
-    // set request to variable 
-    // set request id
-
-    fs.readFile(path.join(__dirname, "db", "db.json"), 'utf8', (err, jsonString) => {
-        if (err) {
-            console.log("File read failed:", err)
-            return
-        }
-        console.log('File data:', jsonString);
-        // json.parse
-        var notes = JSON.parse(jsonString);
-
-        // Note object 
-        const newNote = {
-            title: request.body.title,
-            text: request.body.text,
-            // Github code 
-            id: Math.random().toString(36).substr(2, 9)
-        };
-
-        // console.log(newNote);
-        // array
-        // let noteText = [];
-        notes.splice(request.params.id, 1);
-        // notes.push(newNote);
-        // Will not push to newNote
-        let NotesJSON = JSON.stringify(notes);
-        // push to array 
-        // then stringify 
-
-        fs.writeFile(path.join(__dirname, "db", "db.json"), NotesJSON, (err) => {
-            if (err) {
-                return console.log(err);
-            }
-            // this is console logging
-            console.log("Success!", NotesJSON);
-            return NotesJSON;
-        });
-
-    })
-
-});
-// Server listening confirmation
-app.listen(PORT, () => {
-    console.log(`Server is listening on PORT ${PORT}`);
+    fs.writeFileSync("./db/db.json", JSON.stringify(noteID), (err) => {
+        if (err) throw err;
+        console.log("error");
+    });
+    console.log("Note has been deleted");
+    return res.json(savedNotes);
 });
 
+// returns notes.html file
+app.get("/notes", (req, res) => {
+    res.sendFile(path.join(__dirname, "/public/notes.html"));
+  });
+  
+  // returns index.html file
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "/public/index.html"));
+  });
+  
+  // Starts the server to begin listening
+  app.listen(PORT, () => {
+    console.log('App listening on PORT: ' + PORT);
+  });
