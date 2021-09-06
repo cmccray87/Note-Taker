@@ -32,9 +32,23 @@ app.get("/api/notes", (req, res) => {
 });
 
 // Get/notes - needs to return notes.html
-app.get("/notes", (request, response) => {
+app.get("/api/notes", (req, res) => {
+    let savedNotes = JSON.parse(fs.readFileSync("./db/db.json", "utf8"));
+    let id = crypto.randomBytes(16).toString("hex"); // unique ID per note
+    let newNote = {
+        title: req.body.title,
+        text: req.body.text,
+        id: id,
+    }
+    console.log("newNote:", newNote)
 
-    response.sendFile(path.join(__dirname, "public", "notes.html"));
+    savedNotes.push(newNote);
+
+    fs.writeFileSync("./db/db.json", JSON.stringify(savedNotes), (err) => {
+        if (err) throw err;
+        console.log("error");
+    });
+    
     console.log("Your Notes!");
 })
 
